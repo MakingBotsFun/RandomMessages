@@ -21,7 +21,7 @@ intents.members = True
 
 
 
-bot_version = "1.6 Public Release Version"
+bot_version = "1.5.2 Public Release Version"
 
 cwd = Path(__file__).parents[0]
 cwd = str(cwd)
@@ -152,7 +152,7 @@ async def cancelsession(interaction : nextcord.Interaction):
 
 @client.slash_command(description="View the credits of the bot!")
 async def credits(interaction : nextcord.Interaction):
-  embed = nextcord.Embed(title="Credits", description="Credits: \n \n 1. Nextcord for the library of the bot \n \n 2. https://gist.github.com/0xicl33n/e5008c5865347aafc644a67455507314 for the bot join message \n \n 3. <@744147607697489941> for the vehicle registration command idea \n \n That's all mostly!", color=nextcord.Color.green())
+  embed = nextcord.Embed(title="Credits", description="Credits: \n \n 1. Nextcord for the library of the bot \n \n 2. https://gist.github.com/0xicl33n/e5008c5865347aafc644a67455507314 for the bot join message \n \n That's all mostly!", color=nextcord.Color.green())
   await interaction.send(embed=embed, ephemeral=True)
 
 @application_checks.has_role(920449615118090270)
@@ -182,28 +182,21 @@ async def supportserver(interaction : nextcord.Interaction):
 
 @client.slash_command(description="Look at the version of GreenvilleSessions at the moment!")
 async def version(interaction : nextcord.Interaction):
-  embed = nextcord.Embed(title="GreenvilleSessions Version", description=f"Current version: {bot_version} \n \n \n RELEASE NOTES FOR 1.6: \n - Added vehicle registration command thanks to <@744147607697489941>", color=nextcord.Color.green())
+  embed = nextcord.Embed(title="GreenvilleSessions Version", description=f"Current version: {bot_version} \n \n \n RELEASE NOTES FOR 1.5.2: \n  \n \n - Did a bug fix \n \n - Reverted a change", color=nextcord.Color.green())
   await interaction.send(embed=embed, ephemeral=True)
 
 @client.slash_command(description="Invite the bot!")
 async def invite(interaction : nextcord.Interaction):
   embed = nextcord.Embed(title="Inviting the bot!", description="You can invite the bot with the link: https://discord.com/api/oauth2/authorize?client_id=961699072140521553&permissions=412317183040&scope=bot%20applications.commands", color=nextcord.Color.green())
-  await interaction.send(embed=embed)
+  await interaction.send(embed=embed, ephemeral=True)
 
 
 @application_checks.has_role("GreenvilleSessions Administrator")
 @client.slash_command(description="Add a role to a user!")
 async def addrole(interaction, needed_role: nextcord.Role, give: nextcord.Role): 
   for member in needed_role.members:
-    await member.add_roles
-   
+    await member.add_roles  
   await interaction.send("Success!", ephemeral=True)
                            
-  
-
-@client.slash_command(description="Register a car!")
-async def registervehicle(interaction : nextcord.Interaction, type : str, brand : str,  plate : str):
-  embed = nextcord.Embed(title="Vehicle Registration", description=f"A vehicle has been registered by {interaction.user.mention}! Information: \n \n Type: {type} \n \n Brand: {brand} \n \n License Plate: {plate}", color=nextcord.Color.green())
-  await interaction.send(embed=embed)
-    
+     
 client.run("TOKEN_HERE")
