@@ -15,26 +15,29 @@ import keep_alive
 import random
 keep_alive.keep_alive()
 
+client = nextcord.Client()
+
+
+
 
 intents = nextcord.Intents.default()
 intents.members = True
 
 
 
-bot_version = "1.6 Public Release Version"
+bot_version = "1.7 Public Release Version"
 
 cwd = Path(__file__).parents[0]
 cwd = str(cwd)
 
-client = commands.Bot(command_prefix="ge!", help_command=None, intents=intents)
+bot = commands.Bot(command_prefix="ge!", help_command=None, intents=intents)
 
-
-
-@client.event
+@bot.event
 async def on_ready():
-  await client.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f"greenville sessions"))
+  await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name=f"sessions"))
 
-@client.event
+
+@bot.event
 async def on_guild_join(guild):
     for channel in guild.text_channels:
         if channel.permissions_for(guild.me).send_messages:
@@ -42,8 +45,6 @@ async def on_guild_join(guild):
         break
       
 mentions_true = allowed_mentions=nextcord.AllowedMentions(everyone=True)
-
-client.blacklisted_users = []
 
 
 
@@ -57,50 +58,90 @@ def write_json(data, filename):
         json.dump(data, file, indent=4)  
 
 data = read_json("blacklist")
-client.blacklisted_users = data["blacklistedUsers"]
-  
-# @client.application_command_check
-# async def check_commands(interaction: nextcord.Interaction) -> bool:
- #  if interaction.user.id in client.blacklisted_users:
-  #   await interaction.send("You are blacklisted from using the bot.", ephemeral=True)
- #   return False
- # else:
-  #  return True
+bot.blacklisted_users = data["blacklistedUsers"]
+
 
 
 @application_checks.has_role("GreenvilleSessions Host")
-@client.slash_command(description="Startup a session!")
+@bot.slash_command(description="Startup a session!")
 async def startupsession(interaction : nextcord.Interaction, requiredreactions : int):
-  embed = nextcord.Embed(title="Session Startup", description=f"Hey everyone! \n \n \n A session has started by {interaction.user.mention}. Please make sure to read the important channels that are in this server before joining the session. \n \n \n Make sure to respect server staff who host sessions, and follow any directions given by them. \n \n \n To join the session, make sure in your roblox settings in the privacy tab everyone can invite you. \n \n \n Make sure to react to this message after doing so with the checkmark. {startupsession.requiredreactions} are required for the session to start.", color=nextcord.Color.green()) 
-  await interaction.send("Sending! Expect the message to appear shortly.", ephemeral=True)
-  msg = await interaction.channel.send("@here", embed=embed, allowed_mentions=mentions_true)
-  await msg.add_reaction("✅")
+  class StartupSession_Buttons(nextcord.ui.View):
+    def __init__(self):
+      super().__init__()
+
+    @nextcord.ui.button(label="Send", style=nextcord.ButtonStyle.green)
+    async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      embed = nextcord.Embed(title="Session Startup", description=f"Hey everyone! \n \n \n A session has started by {interaction.user.mention}. Please make sure to read the important channels that are in this server before joining the session. \n \n \n Make sure to respect server staff who host sessions, and follow any directions given by them. \n \n \n To join the session, make sure in your roblox settings in the privacy tab everyone can invite you. \n \n \n Make sure to react to this message after doing so with the checkmark. {requiredreactions} are required for the session to start.", color=nextcord.Color.green())
+      msg = await interaction.channel.send("@here", embed=embed, allowed_mentions=mentions_true)
+      await msg.add_reaction("✅")
+      self.stop()
+
+    @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
+    async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      await interaction.send("Cancelled this action.", ephemeral=True)
+      self.stop()
+  View = StartupSession_Buttons()
+  await interaction.send("Send startup message?", view=View, ephemeral=True)
+  
 
 
 @application_checks.has_role("GreenvilleSessions Host")
-@client.slash_command(description="Make the bot send a message that you are setting up a server!")
+@bot.slash_command(description="Make the bot send a message that you are setting up a server!")
 async def settingup(interaction : Interaction):
-  embed = nextcord.Embed(title="Setting Up", description=f"The session is being set up by {interaction.user.mention}. Please get ready to join the session soon.", color=nextcord.Color.green())
-  await interaction.response.send_message(embed=embed)
+  class SettingUp_Buttons(nextcord.ui.View):
+    def __init__(self):
+      super().__init__()
+
+    @nextcord.ui.button(label="Send", style=nextcord.ButtonStyle.green)
+    async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      embed = nextcord.Embed(title="Setting Up", description=f"{interaction.user.mention} is setting up a session. Please get ready to join.", color=nextcord.Color.yellow())
+      await interaction.channel.send(embed=embed)
+      self.stop()
+
+    @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
+    async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      await interaction.send("Cancelled this action.", ephemeral=True)
+      self.stop() 
+      
 
     
 @application_checks.has_role("GreenvilleSessions Host")
-@client.slash_command(description="Make the bot send a message of who the co-hosts are!")
-async def cohosts(interaction : Interaction, cohost : nextcord.Member, cohost2 : Optional[nextcord.Member]):
-  if not cohost2:   
-    embed = nextcord.Embed(title="Co-host decided", description=f"The co-host for this session has been decided! The co-host: {cohost.mention}", color=nextcord.Color.green())
-    await interaction.response.send_message(embed=embed)
+@bot.slash_command(description="Make the bot send a message of who the co-hosts are!")
+async def cohosts(interaction : Interaction, cohost: nextcord.Member, cohost2: Optional[nextcord.Member]):
+  class CoHost_Buttons(nextcord.ui.View):
+    def __init__(self):
+      super().__init__()
+
+    @nextcord.ui.button(label="Send", style=nextcord.ButtonStyle.green)
+    async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      if not cohost2:
+        embed = nextcord.Embed(title="Co-host decided", description=f"{interaction.user.mention} has chosen their co-host! \n Co-host: {cohost.mention}", color=nextcord.Color.green())
+        await interaction.channel.send(embed=embed)
+        self.stop()
+      else:
+        embed = nextcord.Embed(title="Co-hosts decided", description=f"{interaction.user} has chosen their co-hosts! \n Co-host: {cohost.mention} \n \n Co-host 2: {cohost2.mention}", color=nextcord.Color.green())
+        await interaction.send(embed=embed)
+        self.stop()
+
+    @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
+    async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      await interaction.send("Cancelled this action.", ephemeral=True)  
+      self.stop()
+  if cohost2:
+    View = CoHost_Buttons()
+    await interaction.send(f"Send cohost message? \n \n Cohost: {cohost.mention} \n \n Cohost 2: {cohost2.mention}", view=View, ephemeral=True)
   else:
-    embed = nextcord.Embed(title="Co-hosts decided", description=f"The co-hosts for this session have been decided! The co-hosts: {cohost.mention} and {cohost2.mention}.", color=nextcord.Color.green())
-    await interaction.send(embed=embed)
+    View = CoHost_Buttons()
+    await interaction.send(f"Send cohost message? \n \n Cohost: {cohost.mention}", view=View, ephemeral=True)
 
     
 @application_checks.has_role("GreenvilleSessions Host")
-@client.slash_command(description="Tell people that you released a server!")
+@bot.slash_command(description="Tell people that you released a server!")
 async def sessionrelease(interaction : nextcord.Interaction, link : str):
   class ReleaseSession_Buttons(nextcord.ui.View):
    def __init__(self):
      super().__init__()
+     
 
    @nextcord.ui.button(label="Send", style=nextcord.ButtonStyle.green)
    async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -117,34 +158,53 @@ async def sessionrelease(interaction : nextcord.Interaction, link : str):
      await interaction.send("Cancelled this action.", ephemeral=True)
      self.stop()
   View = ReleaseSession_Buttons()
-  await interaction.send(f"Would you like to release this session? \n Data: \n \n Link: {link}", view=View,  ephemeral=True)      
+  await interaction.send(f"Would you like to release this session? \n \n Data: \n \n Link: {link}", view=View,  ephemeral=True)      
       
 
 
 @application_checks.has_role("GreenvilleSessions Host")
+@bot.slash_command(description="Give early access members your session link!")
 async def earlyaccess(interaction : nextcord.Interaction, link : str):
-  embed = nextcord.Embed(title="Early Access", description=f"{interaction.user.mention}'s session has got released for early access members! The link: {link}", color=nextcord.Color.blue())
-  if link.startswith("https://www.roblox.com/games/"):
-    await interaction.send(embed=embed)
-  else:
-    await interaction.send("GREENVILLESESSIONS_DETECTION: Not roblox vip server link", ephemeral=True)
+  class EarlyAccess_Buttons(nextcord.ui.View):
+   def __init__(self):
+     super().__init__()
+
+   @nextcord.ui.button(label="Send", style=nextcord.ButtonStyle.green)
+   async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      if link.startswith("https://www.roblox.com/games/"):
+        embed = nextcord.Embed(title="Early Access", description=f"{interaction.user.mention}'s session has got released for early access members! The link: {link}", color=nextcord.Color.blue())
+        await interaction.channel.send(embed=embed)
+        self.stop()
+      else:
+        await interaction.send("GREENVILLESESSIONS_DETECTION: Not roblox vip server link", ephemeral=True)
+        self.stop()
+
+
+   @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
+   async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+     await interaction.send("Cancelled this action.", ephemeral=True)
+     self.stop()
+  View = EarlyAccess_Buttons()
+  await interaction.send(f"Send early access message? \n \n Link: {link}", view=View, ephemeral=True)
     
-@client.slash_command(description="View the guide for GreenvilleSessions!")
+
+guide = nextcord.Embed(title=":wave: Hey there!", description="Thank you for choosing GreenvilleSessions for your server. This guide will show you how to make GreenvilleSessions working, as most of the commands will not work without the setup of the bot. \n \n Instructions \n \n 1. Make a role in your discord server called GreenvilleSessions Host. \n \n 2. Give the role to the staff members who you allow to host sessions in your server. \n \n 3. Try the bot now. If the commands aren't working, maybe try looking at the possible errors of the bot using the /possibleerrors command. \n \n \n Extra: Tired of adding roles to your staff? Make a role called GreenvilleSessions Administrator, and use the /addroles command. It helps a ton! \n \n \nThat's all, thank you for using GreenvilleSessions! If you need any help, don't feel afraid to join the support server.", color=nextcord.Color.green())
+
+@bot.slash_command(description="View the guide for GreenvilleSessions!")
 async def botguide(interaction : nextcord.Interaction):
-  embed = nextcord.Embed(title=":wave: Hey there!", description="Thank you for choosing GreenvilleSessions for your server. This guide will show you how to make GreenvilleSessions working, as most of the commands will not work without the setup of the bot. \n \n Instructions \n \n 1. Make a role in your discord server called GreenvilleSessions Host. \n \n 2. Give the role to the staff members who you allow to host sessions in your server. \n \n 3. Try the bot now. If the commands aren't working, maybe try looking at the possible errors of the bot using the /possibleerrors command. \n \n \n Extra: Tired of adding roles to your staff? Make a role called GreenvilleSessions Administrator, and use the /addroles command. It helps a ton! \n \n \nThat's all, thank you for using GreenvilleSessions! If you need any help, don't feel afraid to join the support server.", color=nextcord.Color.green())
   if interaction.guild.owner_id == interaction.user.id:
-    await interaction.send(embed=embed, ephemeral=True)
+    await interaction.send(embed=guide, ephemeral=True)
   else:
     await interaction.send("You do not have permission to use this command. Only the server owner can.", ephemeral=True)
 
-@client.slash_command(description="Look at the possible errors of the bot!")
+@bot.slash_command(description="Look at the possible errors of the bot!")
 async def possibleerrors(interaction : nextcord.Interaction):
   embed = nextcord.Embed(title="Possible Errors", description="1. The bot is not responding! \n **Solution: Try looking at /botguide. If you can't reach that and the slash commands do not work for a long time, go to the support server and talk with the staff.** \n \n 2. My staff can't host with the bot, even though I created the role GreenvilleSessions Host! \n **Solution: This would be because you didn't give your staff members who can host the role. If this is not the case, go to the support server and talk with the staff.**", color=nextcord.Color.green())
   await interaction.send(embed=embed, ephemeral=True)
 
 
 @commands.has_role(930193112201064581)
-@client.command()
+@bot.command()
 async def contactdm(ctx, member : nextcord.Member, *, arg):
   await ctx.message.delete()
   await ctx.author.send(f":white_check_mark: It seems that your message has been sent to {member.mention}. Your message: {arg}")
@@ -152,7 +212,7 @@ async def contactdm(ctx, member : nextcord.Member, *, arg):
 
 
 @commands.has_role(930193112201064581)
-@client.command()
+@bot.command()
 async def saymessage(ctx, *, arg):
   await ctx.message.delete()
   await ctx.send(arg)
@@ -161,10 +221,10 @@ class EndSession_Buttons(nextcord.ui.View):
   def __init__(self):
     super().__init__()
 
-  @nextcord.ui.button(label="Send", style=nextcord.ButtonStyle.green)
+  @nextcord.ui.button(label="End Session", style=nextcord.ButtonStyle.green)
   async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
     embed = nextcord.Embed(title="Session Ended", description=f"{interaction.user.mention}'s session has ended.", color=nextcord.Color.red())
-    await interaction.send(embed=embed)
+    await interaction.channel.send(embed=embed)
     self.stop()
 
   @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
@@ -173,7 +233,7 @@ class EndSession_Buttons(nextcord.ui.View):
     self.stop()
 
 
-@client.slash_command(description="End a session!")
+@bot.slash_command(description="End a session!")
 async def endsession(interaction : nextcord.Interaction):
   await interaction.send("End the session?", view=view, ephemeral=True)
 
@@ -185,7 +245,7 @@ class CancelSession_Buttons(nextcord.ui.View):
   @nextcord.ui.button(label="Send", style=nextcord.ButtonStyle.green)
   async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
     embed = nextcord.Embed(title="Session Cancelled", description=f"{interaction.user.mention}'s session has got cancelled.", color=nextcord.Color.red())
-    await interaction.send(embed=embed)
+    await interaction.channel.send(embed=embed)
     self.stop()
 
   @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
@@ -193,61 +253,108 @@ class CancelSession_Buttons(nextcord.ui.View):
     await interaction.send("Cancelled this action.", ephemeral=True)
     self.stop()
 
-  
-    
-    
-@client.slash_command(description="Cancel a session!")
+
+@bot.slash_command(description="Cancel a session!")
 async def cancelsession(interaction : nextcord.Interaction):
   View = CancelSession_Buttons()
   await interaction.send("Cancel session?", view=View, ephemeral=True)
 
 
-@client.slash_command(description="View the credits of the bot!")
+@bot.slash_command(description="View the credits of the bot!")
 async def credits(interaction : nextcord.Interaction):
   embed = nextcord.Embed(title="Credits", description="Credits: \n \n 1. Nextcord for the library of the bot \n \n 2. https://gist.github.com/0xicl33n/e5008c5865347aafc644a67455507314 for the bot join message \n \n That's all mostly!", color=nextcord.Color.green())
   await interaction.send(embed=embed, ephemeral=True)
 
 @application_checks.has_role(920449615118090270)
-@client.slash_command(description="Blacklist a user!")
+@bot.slash_command(description="Blacklist a user!")
 async def blacklist(interaction : nextcord.Interaction, user : nextcord.User):
+    class Blacklist_Buttons(nextcord.ui.View):
+     def __init__(self): 
+      super().__init__()
+      
+     @nextcord.ui.button(label="Blacklist", style=nextcord.ButtonStyle.green)
+     async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+       bot.blacklisted_users.append(user.id)
+       data = read_json("blacklist")
+       data["blacklistedUsers"].append(user.id)
+       write_json(data, "blacklist")
+       await interaction.send(f"Successfully blacklisted {user.mention}.", ephemeral=True)
+       self.stop()
+
+     @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
+     async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+       await interaction.send("Cancelled this action.", ephemeral=True)
+       self.stop()
+    View = Blacklist_Buttons()
+    await interaction.send(f"📁 **Information** \n🗂️ Person for blacklist information: \n \n ✅ User:  {user.mention} \n \n ✅ Username and tag currently: {user} \n \n ✅ User ID: {user.id} \n \n 🛠️Blacklist?", view=View, ephemeral=True)
+
   
-    client.blacklisted_users.append(user.id)
-    data = read_json("blacklist")
-    data["blacklistedUsers"].append(user.id)
-    write_json(data, "blacklist")
-    await interaction.send(f"Successfully blacklisted {user.mention}.", ephemeral=True)
+
+  
+      
 
 @application_checks.has_role(920449615118090270)
-@client.slash_command()
+@bot.slash_command()
 async def unblacklist(interaction : nextcord.Interaction, user : nextcord.User):
-    client.blacklisted_users.remove(user.id)
-    data = read_json("blacklist")
-    data["blacklistedUsers"].remove(user.id)
-    write_json(data, "blacklist")
-    await interaction.send(f"Successfully unblacklisted {user.mention}.", ephemeral=True)
+   class Unblacklist_Buttons(nextcord.ui.View):
+    def __init__(self): 
+      super().__init__()
+
+    @nextcord.ui.button(label="Unblacklist", style=nextcord.ButtonStyle.green)
+    async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      bot.blacklisted_users.remove(user.id)
+      data = read_json("blacklist")
+      data["blacklistedUsers"].remove(user.id)
+      write_json(data, "blacklist")
+      await interaction.send(f"Successfully unblacklisted {user.mention}.", ephemeral=True)
+      self.stop()
+
+    @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
+    async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      await interaction.send("Cancelled this action.", ephemeral=True)
+      self.stop()
+   View = Unblacklist_Buttons()
+   await interaction.send(f"📁**Information** \n \n 🛠️You are unblacklisting {user.mention} \n \n 🗂️User ID: {user.id} \n \n ⚠️This person will be having access to commands again that they are normally supposed to be able to access", view=View, ephemeral=True)
 
 
-@client.slash_command(description="Get a link to the support server!")
+@bot.slash_command(description="Get a link to the support server!")
 async def supportserver(interaction : nextcord.Interaction):
   embed = nextcord.Embed(title="Support Server", description="A invite to the support server: https://discord.gg/qgZpzUdGgg", color=nextcord.Color.green())
   await interaction.send(embed=embed, ephemeral=True)
 
-@client.slash_command(description="Look at the version of GreenvilleSessions at the moment!")
+@bot.slash_command(description="Look at the version of GreenvilleSessions at the moment!")
 async def version(interaction : nextcord.Interaction):
-  embed = nextcord.Embed(title="GreenvilleSessions Version", description=f"Current version: {bot_version} \n \n \n RELEASE NOTES FOR 1.6: \n  \n \n - Added buttons to /releasesession, /endsession, and /cancelsession \n \n - Removed a message from the release session, just because it isn't useful with buttons now", color=nextcord.Color.green())
+  embed = nextcord.Embed(title="GreenvilleSessions Version", description=f"Current version: {bot_version} \n \n \n RELEASE NOTES FOR 1.7: \n  \n \n - Added buttons to more commands \n \n - Changed the text for 1-3 commands?", color=nextcord.Color.green())
   await interaction.send(embed=embed, ephemeral=True)
 
-@client.slash_command(description="Invite the bot!")
+@bot.slash_command(description="Invite the bot!")
 async def invite(interaction : nextcord.Interaction):
-  embed = nextcord.Embed(title="Inviting the bot!", description="You can invite the bot with the link: https://discord.com/api/oauth2/authorize?client_id=961699072140521553&permissions=412317183040&scope=bot%20applications.commands", color=nextcord.Color.green())
+  embed = nextcord.Embed(title="Inviting the bot!", description="You can invite the bot with the link: https://discord.com/api/oauth2/authorize?_id=961699072140521553&permissions=412317183040&scope=bot%20applications.commands", color=nextcord.Color.green())
   await interaction.send(embed=embed, ephemeral=True)
 
 
 @application_checks.has_role("GreenvilleSessions Administrator")
-@client.slash_command(description="Add a role to a user!")
-async def addrole(interaction, needed_role: nextcord.Role, give: nextcord.Role): 
-  for member in needed_role.members:
-    await member.add_roles  
-  await interaction.send("Success!", ephemeral=True)
+@bot.slash_command(description="Add a role to a user!")
+async def addrole(interaction, needed_role: nextcord.Role, give: nextcord.Role):
 
-client.run("TOKEN_HERE")
+  class AddRole_Buttons(nextcord.ui.View):
+    def __init__(self): 
+      super().__init__()
+
+    @nextcord.ui.button(label="Add role", style=nextcord.ButtonStyle.green)
+    async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      for member in needed_role.members:
+        await member.add_roles(give)
+      await interaction.send("Success!", ephemeral=True)
+      self.stop()
+
+    @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
+    async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+      await interaction.send("Cancelled this action.", ephemeral=True)
+      self.stop()
+      
+  View = AddRole_Buttons() 
+  await interaction.send(f"**Notice** \n \n You are giving the role {give} to the people that have the role {needed_role}", view=View, ephemeral=True)
+
+
+bot.run("TOKEN_HERE")
