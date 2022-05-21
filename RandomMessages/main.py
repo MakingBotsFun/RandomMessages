@@ -243,5 +243,5 @@ async def say(ctx, *, arg):
 async def dm(ctx, user : nextcord.User, *, arg):
   await user.send(f"A message has been sent to you by {ctx.author.mention} saying: {arg}")
 
-bot.run('TOKEN_HERE')
+bot.run('OTc1NzgzOTU3MTAwNjI1OTMx.GErvY4.v7ONz7clgjTda5U1-eh0P2giFTenEyidqE33gI')
 
