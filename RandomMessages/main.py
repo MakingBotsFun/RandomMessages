@@ -150,7 +150,7 @@ async def aminoob(interaction : nextcord.Interaction):
     async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
       aminoobrandom = ['No', 'You are not']
       embed = nextcord.Embed(title='rm!aminoob', description=random.choice(aminoobrandom), color=nextcord.Color.green()) 
-      await interaction.send(embed=embed)
+      await interaction.send(embed=embed, ephemeral=True)
       self.stop()
 
     @nextcord.ui.button(label="Cancel", style=nextcord.ButtonStyle.red)
@@ -229,7 +229,7 @@ async def staffpro(interaction : nextcord.Interaction):
 async def prealphanote(interaction : nextcord.Interaction):
   embed = nextcord.Embed(title='To YOU,', description='Thank you for being a person who supported RandomMessages through the early times of the bot and times wherein the bot was not verified and was not in a lot of servers. You trusted RandomMessages and used it although it could have been a scam. Thank you.', color=nextcord.Color.green())
   embed.set_footer(text='Mostly by, - Chai_rbf')
-  await interaction.user.send(embed=embed)
+  await interaction.user.send(embed=embed, ephemeral=True)
 
 @bot.command()
 @commands.has_role(920449615118090270)
