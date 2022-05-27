@@ -244,4 +244,3 @@ async def dm(ctx, user : nextcord.User, *, arg):
   await user.send(f"A message has been sent to you by {ctx.author.mention} saying: {arg}")
 
 bot.run('TOKEN_HERE')
-
