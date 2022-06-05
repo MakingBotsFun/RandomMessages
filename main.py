@@ -120,7 +120,7 @@ async def randomuscoin(interaction : nextcord.Interaction):
     async def send(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
       randomuscoinl = ['Nickel', 'Dime', 'Penny', 'Quarter', 'Half-Dollar Coin']
       embed = nextcord.Embed(title='Random US Coin', description=random.choice(randomuscoinl), color=nextcord.Color.green())
-      embed.set_footer(text='The thing you get in the embed does not have any real value of money, this is just a fun command interactive.')
+      embed.set_footer(text='The thing you get in the embed does not have any real value of money, this is just a fun slash command.')
       await interaction.send(embed=embed, ephemeral=True)
       self.stop()
 
@@ -129,7 +129,7 @@ async def randomuscoin(interaction : nextcord.Interaction):
       await interaction.send("Cancelled this action.", ephemeral=True)
       self.stop()
   View = USCoinButtons()
-  await interaction.send("Check for a random coin", view=View, ephemeral=True)
+  await interaction.send("Check for a random coin?", view=View, ephemeral=True)
 
 
 @bot.slash_command("Check the bot developers!")
