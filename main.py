@@ -9,7 +9,7 @@ client = nextcord.Client()
 bot = commands.Bot(command_prefix='rm!')
 @bot.event
 async def on_ready():
-       print('We have logged in as {0.user}'.format(bot))
+       print(f'We have logged in as {bot.user}')
     
 @bot.event
 async def on_message(message):
