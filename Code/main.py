@@ -1,12 +1,14 @@
 import nextcord
 import random
 import os
-import keep_alive
 from nextcord.ext import commands
-keep_alive.keep_alive()
 from nextcord.ext import application_checks
+
+
 client = nextcord.Client()
 bot = commands.Bot(command_prefix='rm!')
+
+
 @bot.event
 async def on_ready():
        print(f'We have logged in as {bot.user}')
