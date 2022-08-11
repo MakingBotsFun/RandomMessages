@@ -10,4 +10,4 @@ updates:
     schedule:
       interval: "daily"
     reviewers:
-      - @MakingBotsFun/development-team
+      - "@MakingBotsFun/development-team"
